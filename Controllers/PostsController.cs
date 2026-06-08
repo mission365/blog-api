@@ -1,5 +1,7 @@
 using BlogApi.Data;
+using BlogApi.DTOs;
 using BlogApi.Models;
+using BlogApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,25 +12,24 @@ namespace BlogApi.Controllers
 
     public class PostsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IPostService _service;
 
-        public PostsController(AppDbContext context)
+        public PostsController(IPostService service)
         {
-            _context = context;
+            _service = service;
         }
 
 
         [HttpGet] 
         public async Task<IActionResult> GetAll()
         {
-            var posts = await _context.Posts.ToListAsync();
-            return Ok(posts);
+            return Ok(await _service.GetAllAsync());
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var post= await _context.Posts.FindAsync(id);
+            var post= await _service.GetByIdAsync(id);
             if(post != null)
             {
                 return Ok(post);
@@ -37,47 +38,34 @@ namespace BlogApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Post post)
+        public async Task<IActionResult> Create(CreatePostDto dto)
         {
-            if(!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            var created = await _service.CreateAsync(dto);
 
-            await _context.Posts.AddAsync(post);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetById), new { id = post.Id}, post);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id}, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, Post updatePost)
+        public async Task<IActionResult> Update(int id, UpdatePostDto dto)
         {
-            var post = await _context.Posts.FindAsync(id);
-            if(post != null)
+            var result = await _service.UpdateAsync(id, dto);
+            if(!result)
             {
-                post.Title = updatePost.Title;
-                post.Content = updatePost.Content;
-
-                await _context.SaveChangesAsync();
-
-                return Ok(post);
+                return NotFound();
             }
 
-            return NotFound();
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var post = await _context.Posts.FindAsync(id);
-            if(post != null)
+            var result = await _service.DeleteAsync(id);
+            if(!result)
             {
-                _context.Posts.Remove(post);
-                await _context.SaveChangesAsync();
-                return NoContent();
+                return NotFound();
             }
-            return NotFound();
+            return NoContent();
         }
     }
 }
