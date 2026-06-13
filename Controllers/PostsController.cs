@@ -2,6 +2,7 @@ using BlogApi.Data;
 using BlogApi.DTOs;
 using BlogApi.Models;
 using BlogApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ namespace BlogApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
 
     public class PostsController : ControllerBase
     {
@@ -21,6 +23,7 @@ namespace BlogApi.Controllers
 
 
         [HttpGet] 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
             return Ok(await _service.GetAllAsync());
@@ -38,6 +41,7 @@ namespace BlogApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Create(CreatePostDto dto)
         {
             var created = await _service.CreateAsync(dto);
