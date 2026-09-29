@@ -1,5 +1,26 @@
+## ASP.NET / .NET Build Artifacts
 bin/
 obj/
 .vs/
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
+
+## Sensitive Configuration Files (Do NOT commit real credentials to GitHub!)
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+appsettings.local.json
+!appsettings.example.json
+
+## Frontend Artifacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.env
+frontend/.env.local
+frontend/*.log
+.env
+.env.local

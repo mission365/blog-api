@@ -10,8 +10,6 @@ namespace BlogApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
-
     public class PostsController : ControllerBase
     {
         private readonly IPostService _service;
@@ -21,9 +19,7 @@ namespace BlogApi.Controllers
             _service = service;
         }
 
-
         [HttpGet] 
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
             return Ok(await _service.GetAllAsync());
@@ -40,8 +36,8 @@ namespace BlogApi.Controllers
             return NotFound();
         }
 
+        [Authorize]
         [HttpPost]
-        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Create(CreatePostDto dto)
         {
             var created = await _service.CreateAsync(dto);
@@ -49,6 +45,7 @@ namespace BlogApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = created.Id}, created);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdatePostDto dto)
         {
@@ -61,6 +58,7 @@ namespace BlogApi.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

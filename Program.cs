@@ -11,6 +11,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Enable CORS for frontend applications
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -20,6 +31,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddSingleton<JwtHelper>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // ✅ Authentication — Build() এর আগে
@@ -44,7 +56,9 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidAudience = builder.Configuration["Jwt:Audience"],
         ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = System.Security.Claims.ClaimTypes.Role,
+        NameClaimType = System.Security.Claims.ClaimTypes.Name
     };
 });
 
@@ -59,6 +73,26 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Ensure IsPaused column exists in Users table
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        db.Database.ExecuteSqlRaw(@"
+            IF COL_LENGTH('Users', 'IsPaused') IS NULL
+            BEGIN
+                ALTER TABLE Users ADD IsPaused BIT NOT NULL CONSTRAINT DF_Users_IsPaused DEFAULT 0;
+            END
+        ");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Database Schema Check] {ex.Message}");
+    }
+}
+
+app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseAuthentication(); // ✅ Authorization এর আগে
 app.UseAuthorization();

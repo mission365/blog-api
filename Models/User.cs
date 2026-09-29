@@ -19,6 +19,8 @@ namespace BlogApi.Models
 
         public string Role { get; set; } = "User";
 
+        public bool IsPaused { get; set; } = false;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
