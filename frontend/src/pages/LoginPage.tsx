@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Lock, LogIn, Mail, AlertCircle } from 'lucide-react';
+import { Lock, LogIn, Mail, AlertCircle, PauseCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const LoginPage: React.FC = () => {
@@ -68,12 +68,31 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Error Alert */}
-        {error && (
+        {error && error.toLowerCase().includes('paused') ? (
+          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 text-amber-200 space-y-3">
+            <div className="flex items-start gap-3">
+              <PauseCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-white text-sm">Account Paused</p>
+                <p className="text-xs text-amber-200/90 mt-1 leading-relaxed">
+                  Your account is paused. Please mail to open your account.
+                </p>
+              </div>
+            </div>
+            <a
+              href="mailto:mission.use02@gmail.com?subject=Account%20Reactivation%20Request"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold transition-colors"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              Email Admin: mission.use02@gmail.com &rarr;
+            </a>
+          </div>
+        ) : error ? (
           <div className="rounded-xl bg-rose-500/10 border border-rose-500/20 p-3.5 text-xs text-rose-300 flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
             <span>{error}</span>
           </div>
-        )}
+        ) : null}
 
         <div className="glass-card rounded-2xl p-6 sm:p-8 border border-slate-800 space-y-5">
           {/* Google Sign In Button */}

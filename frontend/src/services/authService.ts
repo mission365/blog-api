@@ -322,18 +322,71 @@ export const authService = {
   },
 
   async toggleUserStatus(userId: number, isPaused: boolean): Promise<{ success: boolean; isPaused: boolean; message: string }> {
+    const users = getStoredLocalUsers();
+    const target = users.find((u) => u.id === userId);
+    if (target) {
+      target.isPaused = isPaused;
+      saveStoredLocalUsers(users);
+
+      try {
+        const pausedList: string[] = JSON.parse(localStorage.getItem('pulseblog_paused_emails') || '[]');
+        const em = target.email.toLowerCase();
+        if (isPaused && !pausedList.includes(em)) {
+          pausedList.push(em);
+        } else if (!isPaused) {
+          const idx = pausedList.indexOf(em);
+          if (idx !== -1) pausedList.splice(idx, 1);
+        }
+        localStorage.setItem('pulseblog_paused_emails', JSON.stringify(pausedList));
+      } catch {
+        // ignore
+      }
+    }
+
     try {
       return await apiClient.put<{ success: boolean; isPaused: boolean; message: string }>(`/Auth/users/${userId}/status`, { isPaused });
     } catch (err) {
       console.warn('Updating status in local store:', err);
-      const users = getStoredLocalUsers();
-      const target = users.find((u) => u.id === userId);
-      if (target) {
-        target.isPaused = isPaused;
-        saveStoredLocalUsers(users);
-      }
       return { success: true, isPaused, message: `User account successfully ${isPaused ? 'paused' : 'resumed'}.` };
     }
+  },
+
+  async isAccountPaused(identifier: string): Promise<boolean> {
+    if (!identifier) return false;
+    const clean = identifier.trim().toLowerCase();
+
+    // 1. Check local users
+    try {
+      const users = getStoredLocalUsers();
+      const match = users.find((u) => u.email.toLowerCase() === clean || u.username.toLowerCase() === clean);
+      if (match && match.isPaused) {
+        return true;
+      }
+    } catch {
+      // ignore
+    }
+
+    // 2. Check paused emails store
+    try {
+      const pausedList: string[] = JSON.parse(localStorage.getItem('pulseblog_paused_emails') || '[]');
+      if (Array.isArray(pausedList) && pausedList.includes(clean)) {
+        return true;
+      }
+    } catch {
+      // ignore
+    }
+
+    // 3. Check backend API
+    try {
+      const res = await apiClient.get<{ isPaused: boolean }>(`/Auth/check-paused?email=${encodeURIComponent(clean)}`);
+      if (res && typeof res.isPaused === 'boolean') {
+        return res.isPaused;
+      }
+    } catch {
+      // ignore
+    }
+
+    return false;
   },
 
   logout(): void {

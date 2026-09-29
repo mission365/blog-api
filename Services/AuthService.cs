@@ -259,5 +259,15 @@ namespace BlogApi.Services
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> IsUserPausedAsync(string identifier)
+        {
+            if (string.IsNullOrWhiteSpace(identifier))
+                return false;
+
+            var clean = identifier.Trim().ToLower();
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == clean || u.Username.ToLower() == clean);
+            return user?.IsPaused ?? false;
+        }
     }
 }

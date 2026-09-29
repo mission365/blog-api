@@ -16,5 +16,6 @@ namespace BlogApi.Services
         Task<List<UserSummaryDto>> GetAllUsersAsync();
         Task<bool> UpdateUserRoleAsync(int userId, string newRole, string requesterUsername);
         Task<bool> ToggleUserStatusAsync(int userId, bool isPaused, string requesterUsername);
+        Task<bool> IsUserPausedAsync(string identifier);
     }
 }

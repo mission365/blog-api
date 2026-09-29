@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { firebaseAuthService, mapFirebaseUser } from '../services/firebaseAuthService';
+import { authService } from '../services/authService';
 import { getStoredToken, setStoredToken, clearStoredAuth } from '../services/api';
 import type { LoginDto, RegisterDto, UserSession } from '../types';
 
@@ -31,6 +32,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = firebaseAuthService.onAuthStateChange(async (firebaseUser) => {
       if (firebaseUser) {
         try {
+          const email = firebaseUser.email || '';
+          const isPaused = await authService.isAccountPaused(email);
+          if (isPaused) {
+            console.warn('[AUTH] Paused account detected in Firebase state:', email);
+            await firebaseAuthService.logout();
+            clearStoredAuth();
+            localStorage.removeItem(USER_SESSION_KEY);
+            setUser(null);
+            setToken(null);
+            setIsLoading(false);
+            return;
+          }
+
           const session = await mapFirebaseUser(firebaseUser);
           setUser(session);
           setToken(session.token);
@@ -45,8 +59,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storedToken = getStoredToken();
         if (cached && storedToken) {
           try {
-            setUser(JSON.parse(cached));
-            setToken(storedToken);
+            const parsed = JSON.parse(cached) as UserSession;
+            const isPaused = await authService.isAccountPaused(parsed.email);
+            if (isPaused) {
+              clearStoredAuth();
+              localStorage.removeItem(USER_SESSION_KEY);
+              setUser(null);
+              setToken(null);
+            } else {
+              setUser(parsed);
+              setToken(storedToken);
+            }
           } catch {
             setUser(null);
             setToken(null);
@@ -69,9 +92,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(session);
   };
 
-  // Firebase Email/Password Login
+  // Firebase Email/Password Login with Pause Check
   const login = async (dto: LoginDto): Promise<UserSession> => {
+    // 1. Check if user is paused before signing in
+    const isPausedBefore = await authService.isAccountPaused(dto.usernameOrEmail);
+    if (isPausedBefore) {
+      throw new Error('Your account is paused. Please mail to open your account.');
+    }
+
     const session = await firebaseAuthService.signInWithEmail(dto.usernameOrEmail, dto.password);
+    
+    // 2. Check if the authenticated account is paused
+    const isPausedAfter = await authService.isAccountPaused(session.email);
+    if (isPausedAfter) {
+      await firebaseAuthService.logout();
+      clearStoredAuth();
+      localStorage.removeItem(USER_SESSION_KEY);
+      throw new Error('Your account is paused. Please mail to open your account.');
+    }
+
     setSession(session);
     return session;
   };
@@ -83,9 +122,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return result;
   };
 
-  // Firebase Google Popup Login
+  // Firebase Google Popup Login with Pause Check
   const loginWithGoogle = async (): Promise<UserSession> => {
     const session = await firebaseAuthService.signInWithGoogle();
+
+    // Check if the Google account is paused
+    const isPaused = await authService.isAccountPaused(session.email);
+    if (isPaused) {
+      await firebaseAuthService.logout();
+      clearStoredAuth();
+      localStorage.removeItem(USER_SESSION_KEY);
+      throw new Error('Your account is paused. Please mail to open your account.');
+    }
+
     setSession(session);
     return session;
   };

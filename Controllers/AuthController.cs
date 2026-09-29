@@ -163,5 +163,19 @@ namespace BlogApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("check-paused")]
+        public async Task<IActionResult> CheckPaused([FromQuery] string email)
+        {
+            try
+            {
+                var isPaused = await _authService.IsUserPausedAsync(email);
+                return Ok(new { isPaused });
+            }
+            catch
+            {
+                return Ok(new { isPaused = false });
+            }
+        }
     }
 }
