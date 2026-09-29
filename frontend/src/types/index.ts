@@ -46,6 +46,8 @@ export interface UserSession {
   email: string;
   role: string;
   token: string;
+  photoURL?: string;
+  emailVerified?: boolean;
 }
 
 export interface ApiError {

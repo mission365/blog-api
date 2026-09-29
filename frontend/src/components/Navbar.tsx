@@ -102,8 +102,12 @@ export const Navbar: React.FC = () => {
                   to="/profile"
                   className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-slate-900 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-md">
-                    {user?.username?.charAt(0).toUpperCase()}
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-md overflow-hidden">
+                    {user?.photoURL ? (
+                      <img src={user.photoURL} alt={user.username} className="w-full h-full object-cover" />
+                    ) : (
+                      user?.username?.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div className="text-left">
                     <p className="text-xs font-semibold text-slate-200 leading-tight">

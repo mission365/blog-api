@@ -139,8 +139,12 @@ export const ProfilePage: React.FC = () => {
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-5">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-3xl font-extrabold text-white shadow-xl shadow-indigo-600/25">
-              {user.username.charAt(0).toUpperCase()}
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-3xl font-extrabold text-white shadow-xl shadow-indigo-600/25 overflow-hidden">
+              {user.photoURL ? (
+                <img src={user.photoURL} alt={user.username} className="w-full h-full object-cover" />
+              ) : (
+                user.username.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2.5">

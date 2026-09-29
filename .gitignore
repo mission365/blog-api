@@ -6,6 +6,8 @@ obj/
 *.suo
 *.userosscache
 *.sln.docstates
+publish/
+publish.zip
 
 ## Sensitive Configuration Files (Do NOT commit real credentials to GitHub!)
 appsettings.json
