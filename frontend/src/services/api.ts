@@ -53,6 +53,9 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
 
     if (!response.ok) {
       let errorMessage = `Request failed with status ${response.status} (${response.statusText})`;
+      if (response.status === 405) {
+        errorMessage = `Request failed with status 405: Backend API is not reachable on this server.`;
+      }
       if (typeof data === 'object' && data !== null) {
         if ('message' in data && typeof (data as { message: unknown }).message === 'string') {
           errorMessage = (data as { message: string }).message;
