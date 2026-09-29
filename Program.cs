@@ -96,6 +96,7 @@ app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseAuthentication(); // ✅ Authorization এর আগে
 app.UseAuthorization();
+app.MapGet("/", () => Results.Ok(new { status = "healthy", message = "PulseBlog API is running!", timestamp = DateTime.UtcNow }));
 app.MapControllers();
 
 app.Run();
