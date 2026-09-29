@@ -17,13 +17,9 @@ import {
   Mail,
   RefreshCw,
   Clock,
-  Sparkles,
   CheckCircle2,
   PauseCircle,
-  Play,
-  UserCog,
-  Check,
-  AlertTriangle
+  Play
 } from 'lucide-react';
 import { postService } from '../services/postService';
 import { authService } from '../services/authService';
