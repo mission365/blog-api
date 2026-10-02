@@ -4,10 +4,10 @@ namespace BlogApi.DTOs
 {
     public class LoginDto
     {
-        [Required]
+        [Required, StringLength(100)]
         public required string UsernameOrEmail { get; set;}
 
-        [Required]
+        [Required, StringLength(128)]
         public required string Password { get; set; }
     }
 }

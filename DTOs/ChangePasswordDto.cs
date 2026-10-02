@@ -11,7 +11,7 @@ namespace BlogApi.DTOs
         public required string CurrentPassword { get; set; }
 
         [Required]
-        [MinLength(6)]
+        [StringLength(128, MinimumLength = 6)]
         public required string NewPassword { get; set; }
     }
 }
