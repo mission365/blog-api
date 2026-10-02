@@ -12,7 +12,7 @@ namespace BlogApi.Services
         Task<bool> VerifyEmailAsync(VerifyEmailDto dto);
         Task<string> ForgotPasswordAsync(ForgotPasswordDto dto);
         Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
-        Task<bool> ChangePasswordAsync(ChangePasswordDto dto);
+        Task<bool> ChangePasswordAsync(ChangePasswordDto dto, string requesterUsername);
         Task<List<UserSummaryDto>> GetAllUsersAsync();
         Task<bool> UpdateUserRoleAsync(int userId, string newRole, string requesterUsername);
         Task<bool> ToggleUserStatusAsync(int userId, bool isPaused, string requesterUsername);
