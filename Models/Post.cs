@@ -14,5 +14,9 @@ namespace BlogApi.Models
         public required string Content { get; set; }
 
         public DateTime Created { get; set; } = DateTime.UtcNow;
+
+        // Nullable to preserve posts created before ownership was introduced.
+        public int? AuthorId { get; set; }
+        public User? Author { get; set; }
     }
 }

@@ -473,7 +473,6 @@ export const DashboardPage: React.FC = () => {
                     const formatted = formatAccountDate(u.createdAt);
                     const isCurrentUser = user?.username?.toLowerCase() === u.username.toLowerCase();
                     const isUserAdmin = u.role.toLowerCase() === 'admin';
-                    const isPrimaryAdmin = u.email.toLowerCase() === 'mission.use02@gmail.com';
                     const isBusyRole = isUpdatingRole === u.id;
 
                     return (
@@ -521,7 +520,7 @@ export const DashboardPage: React.FC = () => {
 
                         {/* Role Control */}
                         <td className="py-4 px-4">
-                          {isCurrentUser || isPrimaryAdmin ? (
+                          {isCurrentUser && isUserAdmin ? (
                             <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1">
                               <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
                               Admin
@@ -603,8 +602,6 @@ export const DashboardPage: React.FC = () => {
                         <td className="py-4 px-4 sm:px-6 text-right">
                           {isCurrentUser ? (
                             <span className="text-xs text-slate-500 italic">Current Session</span>
-                          ) : isPrimaryAdmin ? (
-                            <span className="text-xs text-amber-500/80 font-medium">Protected Admin</span>
                           ) : (
                             <button
                               onClick={() => setUserToToggleStatus(u)}

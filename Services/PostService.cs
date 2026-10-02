@@ -1,88 +1,79 @@
 using BlogApi.DTOs;
 using BlogApi.Models;
 using BlogApi.Repositories;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace BlogApi.Services
+namespace BlogApi.Services;
+
+public class PostService : IPostService
 {
-    public class PostService : IPostService
+    private readonly IPostRepository _repo;
+    private readonly ILogger<PostService> _logger;
+
+    public PostService(IPostRepository repo, ILogger<PostService> logger)
     {
+        _repo = repo;
+        _logger = logger;
+    }
 
-        private readonly IPostRepository _repo;
-
-        public PostService(IPostRepository repo)
+    public async Task<PagedResultDto<PostDto>> GetAllAsync(int page, int pageSize, string? search, string sort)
+    {
+        var (items, totalCount) = await _repo.GetPageAsync(page, pageSize, search, sort);
+        return new PagedResultDto<PostDto>
         {
-            _repo = repo;
-        }
+            Items = items.Select(ToDto).ToList(),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
+    }
 
-        public async Task<List<PostDto>> GetAllAsync()
+    public async Task<PostDto?> GetByIdAsync(int id)
+    {
+        var post = await _repo.GetByIdAsync(id);
+        return post is null ? null : ToDto(post);
+    }
+
+    public async Task<PostDto> CreateAsync(CreatePostDto dto, int authorId)
+    {
+        var post = new Post { Title = dto.Title.Trim(), Content = dto.Content.Trim(), AuthorId = authorId };
+        var created = await _repo.AddAsync(post);
+        _logger.LogInformation("Post {PostId} created by user {UserId}.", created.Id, authorId);
+        return ToDto(created);
+    }
+
+    public async Task UpdateAsync(int id, UpdatePostDto dto, int requesterId, bool isAdmin)
+    {
+        var post = await _repo.GetByIdAsync(id) ?? throw new KeyNotFoundException("Post not found.");
+        EnsureCanManage(post, requesterId, isAdmin);
+        post.Title = dto.Title.Trim();
+        post.Content = dto.Content.Trim();
+        await _repo.UpdateAsync(post);
+        _logger.LogInformation("Post {PostId} updated by user {UserId}.", id, requesterId);
+    }
+
+    public async Task DeleteAsync(int id, int requesterId, bool isAdmin)
+    {
+        var post = await _repo.GetByIdAsync(id) ?? throw new KeyNotFoundException("Post not found.");
+        EnsureCanManage(post, requesterId, isAdmin);
+        await _repo.DeleteAsync(post);
+        _logger.LogInformation("Post {PostId} deleted by user {UserId}.", id, requesterId);
+    }
+
+    private static void EnsureCanManage(Post post, int requesterId, bool isAdmin)
+    {
+        if (!isAdmin && (post.AuthorId is null || post.AuthorId != requesterId))
         {
-            var posts = await _repo.GetAllAsync();
-
-            return posts.Select(p => new PostDto
-            {
-                Id = p.Id,
-                Title = p.Title,
-                Content = p.Content
-            }).ToList();
-        }
-
-        public async Task<PostDto?> GetByIdAsync(int id)
-        {
-            var post = await _repo.GetByIdAsync(id);
-
-            if(post == null) return null;
-
-            return new PostDto
-            {
-                Id = post.Id,
-                Title = post.Title,
-                Content = post.Content
-            };
-        }
-
-        public async Task<PostDto> CreateAsync(CreatePostDto dto)
-        {
-            var post = new Post
-            {
-                Title = dto.Title,
-                Content = dto.Content
-            };
-
-            var created = await _repo.AddAsync(post);
-
-            return new PostDto
-            {
-                Id = created.Id,
-                Title = created.Title,
-                Content = created.Content
-            };
-        }
-
-        public async Task<bool> UpdateAsync(int id, UpdatePostDto dto)
-        {
-            var post = await _repo.GetByIdAsync(id);
-
-            if(post == null) return false;
-
-            post.Title = dto.Title;
-            post.Content = dto.Content;
-
-            await _repo.UpdateAsync(post);
-
-            return true;
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var post = await _repo.GetByIdAsync(id);
-
-            if(post == null) return false;
-
-            await _repo.DeleteAsync(post);
-            return true;
+            throw new UnauthorizedAccessException("You can only manage your own posts.");
         }
     }
 
+    private static PostDto ToDto(Post post) => new()
+    {
+        Id = post.Id,
+        Title = post.Title,
+        Content = post.Content,
+        Created = post.Created,
+        AuthorId = post.AuthorId,
+        Author = post.Author?.Username
+    };
 }

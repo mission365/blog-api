@@ -12,21 +12,15 @@ import {
 import { auth, googleProvider } from '../firebase';
 import type { UserSession } from '../types';
 
-const ADMIN_EMAILS = [
-  'mission.use02@gmail.com',
-  'devnathmridul900@gmail.com',
-  'missiondevnath901@gmail.com',
-];
-
 export async function mapFirebaseUser(user: FirebaseUser): Promise<UserSession> {
   const token = await user.getIdToken();
   const email = user.email || '';
-  const isAdmin = ADMIN_EMAILS.some((admin) => admin.toLowerCase() === email.toLowerCase());
 
   return {
     username: user.displayName || email.split('@')[0] || 'Author',
     email,
-    role: isAdmin ? 'Admin' : 'User',
+    // Firebase identity alone does not grant API administrator privileges.
+    role: 'User',
     token,
     photoURL: user.photoURL || undefined,
     emailVerified: user.emailVerified,

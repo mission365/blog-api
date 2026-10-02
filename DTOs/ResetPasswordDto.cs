@@ -4,14 +4,13 @@ namespace BlogApi.DTOs
 {
     public class ResetPasswordDto
     {
-        [Required]
+        [Required, EmailAddress]
         public required string Email { get; set; }
 
-        [Required]
+        [Required, RegularExpression("^[0-9]{6}$")]
         public required string Code { get; set; }
 
-        [Required]
-        [MinLength(6)]
+        [Required, StringLength(128, MinimumLength = 6)]
         public required string NewPassword { get; set; }
     }
 }

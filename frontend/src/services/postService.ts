@@ -1,5 +1,5 @@
 import { apiClient } from './api';
-import type { CreatePostDto, Post, UpdatePostDto } from '../types';
+import type { CreatePostDto, PagedResult, Post, UpdatePostDto } from '../types';
 
 const LOCAL_STORAGE_POSTS_KEY = 'pulseblog_local_posts';
 const LOCAL_STORAGE_DELETED_KEY = 'pulseblog_deleted_ids';
@@ -167,7 +167,8 @@ export const postService = {
     const localPosts = getLocalPosts().filter((p) => !deletedIds.includes(p.id));
 
     try {
-      const serverPosts = await apiClient.get<Array<{ id: number; title: string; content: string }>>('/Posts');
+      const serverResponse = await apiClient.get<PagedResult<{ id: number; title: string; content: string; created?: string; author?: string; authorId?: number }> | Array<{ id: number; title: string; content: string }>>('/Posts');
+      const serverPosts = Array.isArray(serverResponse) ? serverResponse : serverResponse.items;
       if (Array.isArray(serverPosts) && serverPosts.length > 0) {
         const enrichedServer = serverPosts
           .filter((p) => !deletedIds.includes(p.id))
@@ -212,7 +213,7 @@ export const postService = {
 
     // Try backend
     try {
-      const serverPost = await apiClient.get<{ id: number; title: string; content: string }>(`/Posts/${id}`);
+      const serverPost = await apiClient.get<{ id: number; title: string; content: string; created?: string; author?: string; authorId?: number }>(`/Posts/${id}`);
       if (serverPost && serverPost.id) {
         return enrichPost(serverPost);
       }

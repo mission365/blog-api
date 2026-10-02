@@ -4,7 +4,7 @@ namespace BlogApi.DTOs
 {
     public class VerifyEmailDto
     {
-        [Required]
+        [Required, RegularExpression("^[0-9]{6}$")]
         [EmailAddress]
         public required string Email { get; set; }
 

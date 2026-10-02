@@ -1,181 +1,227 @@
-# 🌐 PulseBlog — Modern Full-Stack Blog & Publishing Platform
+# PulseBlog
 
-[![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![React 19](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-6.0+-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
-[![SQL Server](https://img.shields.io/badge/Database-MS_SQL_Server-CC292B?logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
+PulseBlog is a full-stack blogging application with an ASP.NET Core 9 REST API, React and TypeScript frontend, Entity Framework Core migrations, and SQL Server persistence. The repository is organized as a layered backend and a Vite-powered single-page application.
 
-A production-grade, full-stack RESTful blogging and publishing web application engineered with an **ASP.NET Core (.NET 9) Web API** backend and a **React 19 + TypeScript + Tailwind CSS** frontend. Features hybrid authentication (Firebase Google Sign-In + JWT), role-based access control, rich administrative controls (account pausing & role updates), and cloud MS SQL Server persistence.
+## Project overview
 
----
+Users can register, sign in with Firebase email or Google authentication, publish posts, edit or delete posts they own, change their password, and recover access through email verification flows. Administrators can review users, change roles, and pause or resume accounts.
 
-## 🌟 Key Features
+### Screenshots
 
-### 🔐 Authentication & Security
-- **Firebase Authentication:** One-click **Google Sign-In** popup and Email/Password authentication.
-- **Automated Password Reset:** Google-backed secure password reset delivery directly to inbox.
-- **Account State Governance:** Real-time enforcement of **Paused** user accounts with instant forced logout and reactivation request workflows.
-- **Role-Based Authorization:** Distinct permissions for **Admin** and **Author** accounts with JWT tokens and protected routes.
+Add project screenshots here before publishing a portfolio entry:
 
-### 📝 Publishing & Content Management
-- **Full CRUD Operations:** Create, read, update, and delete blog posts with rich content and cover images.
-- **Categorization & Filtering:** Filter articles by technology, category, author, and search terms.
-- **Read Time Calculation:** Dynamic read time estimates for articles.
-- **Responsive Aesthetics:** State-of-the-art dark glassmorphic user interface built with Tailwind CSS v4 and Lucide React icons.
+- `docs/screenshots/home-feed.png` — public article feed
+- `docs/screenshots/article-detail.png` — article details
+- `docs/screenshots/authentication.png` — sign-in or registration
+- `docs/screenshots/post-editor.png` — post editor
+- `docs/screenshots/admin-dashboard.png` — administrator user management
+- `docs/screenshots/swagger.png` — Swagger UI with the bearer scheme
 
-### 🛡️ Admin Dashboard & Moderation
-- **User Governance:** View registered users, post counts, and join dates.
-- **Role Assignment:** Elevate authors to Admins or demote to standard Authors.
-- **Account Suspension:** Instant **Pause / Resume** switch for rogue accounts with real-time session termination.
+These are suggested capture locations; no screenshots are generated or committed by this repository.
 
----
+## Architecture
 
-## 🏗️ Architecture & Tech Stack
-
-```
-BlogApi (Full-Stack Solution)
-├── Controllers/       # ASP.NET Core API Endpoints (Auth, Posts)
-├── Services/          # Business logic & authentication services
-├── Repositories/      # Entity Framework Core Data Access Layer
-├── Data/              # AppDbContext & EF Core database configuration
-├── Models/            # Database Entities (User, Post)
-├── DTOs/              # Data Transfer Objects & validation contracts
-├── Migrations/        # EF Core Code-First database migrations
-└── frontend/          # React 19 + TypeScript + Vite SPA
-    ├── src/
-    │   ├── components/# Reusable UI elements (Navbar, Footer, Modals)
-    │   ├── context/   # AuthContext with Firebase session sync
-    │   ├── pages/     # Home, Login, Register, Profile, Admin Dashboard, Post Editor
-    │   ├── services/  # API client, postService, firebaseAuthService
-    │   └── types/     # TypeScript interfaces & DTO contracts
+```text
+React/TypeScript frontend
+        |
+ASP.NET Core REST API
+        |
+Controller layer
+        |
+Service and business logic layer
+        |
+Repository and EF Core data access
+        |
+SQL Server
 ```
 
-| Component | Technology | Details |
-| :--- | :--- | :--- |
-| **Backend Framework** | ASP.NET Core 9.0 | Minimal APIs & Controller-based RESTful Web API |
-| **ORM / Data Access** | Entity Framework Core 8 | Code-First migrations with Microsoft SQL Server provider |
-| **Database** | Microsoft SQL Server | Cloud-hosted MSSQL instance (`databaseasp.net`) |
-| **Security** | JWT + Firebase Auth | Hybrid token auth, Google OAuth 2.0, BCrypt password hashing |
-| **Frontend Framework**| React 19 + TypeScript | High performance Single Page Application built on Vite |
-| **Styling** | Tailwind CSS v4 | Curated dark-mode design system with glassmorphic cards |
-| **Deployment** | Vercel & MonsterASP | Frontend on Vercel CDN; Backend on MonsterASP.NET |
+Authentication uses Firebase ID tokens and API-issued JWTs. Both are validated by the API when configured. User roles are read from the SQL Server user record; a Firebase identity does not grant administrator access by itself.
 
----
+## Technology stack
 
-## 🚀 Getting Started Locally
+- .NET 9 and ASP.NET Core Web API
+- Entity Framework Core 9 with the SQL Server provider
+- JWT bearer authentication and Firebase Authentication
+- BCrypt password hashing for API-managed credentials
+- React 19, TypeScript, Vite, Tailwind CSS, and Firebase client SDK
+- SQL Server
+- Docker for backend container builds
+- Swagger/OpenAPI for development API exploration
 
-### Prerequisites
-* [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-* [Node.js (v18+)](https://nodejs.org/) & `npm`
-* [SQL Server](https://www.microsoft.com/sql-server) or access to a cloud connection string
+## Backend flow
 
----
+Controllers handle HTTP contracts and validation. Services enforce authentication, account state, ownership, and role rules. Repositories query and persist entities through `AppDbContext`. The exception middleware converts expected failures into consistent RFC 7807 responses and hides internal details for unexpected failures.
 
-### 1. Backend Setup (ASP.NET Core)
+Posts support:
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/mission365/blog-api.git
-   cd blog-api
-   ```
+- Public reads through `GET /api/Posts`
+- Page and page-size limits (page size maximum 100)
+- Search across title and content
+- Sorting by newest, oldest, or title
+- Ownership-aware create, update, and delete operations
+- Administrator management of any post
 
-2. Configure your connection string and credentials in `appsettings.json`:
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Server=localhost;Database=BlogDb;Trusted_Connection=True;TrustServerCertificate=True;"
-     },
-     "Jwt": {
-       "Key": "YourSuperSecretKeyHereAtLeast32CharactersLong!",
-       "Issuer": "BlogApi",
-       "Audience": "BlogApiUsers",
-       "ExpireHours": 3
-     }
-   }
-   ```
+Legacy posts without an author remain readable after the ownership migration. They can be managed by an administrator until an ownership policy is applied.
 
-3. Apply database migrations:
-   ```bash
-   dotnet ef database update
-   ```
+## Authentication and authorization
 
-4. Launch the API:
-   ```bash
-   dotnet run
-   ```
-   *The backend will be running at `http://localhost:5231` (Swagger UI at `/swagger`).*
+- Firebase ID tokens are accepted when `Firebase:ProjectId` is configured.
+- API-issued JWTs use the configured issuer, audience, and signing key.
+- Firebase users are provisioned into the `Users` table on their first authenticated API request.
+- Administrator roles come from the database. The initial account is configured through `InitialAdmin` settings and is never hard-coded.
+- Post changes require authentication and are checked against the post author or the Admin role.
+- Paused users cannot log in through the API, and the frontend checks account state when a Firebase session changes.
 
----
+## Database and migrations
 
-### 2. Frontend Setup (React + Vite)
+The SQL Server schema is managed with EF Core migrations. The latest migration adds `Users.IsPaused`, `Posts.AuthorId`, and the nullable foreign key from posts to users. No startup SQL alters tables.
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
+Apply migrations locally:
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+```bash
+dotnet tool install --global dotnet-ef
+dotnet ef database update
+```
 
-3. Create a `.env` file based on `.env.example`:
-   ```env
-   VITE_API_BASE_URL=http://localhost:5231
+For production, review and apply an idempotent migration script:
 
-   # Firebase Configuration
-   VITE_FIREBASE_API_KEY=your_api_key
-   VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your-project-id
-   VITE_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-   VITE_FIREBASE_APP_ID=your_app_id
-   ```
+```bash
+dotnet ef migrations script --idempotent --output artifacts/migrations.sql
+```
 
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
-   *The frontend will launch at `http://localhost:5173`.*
+A production database backup and a review of existing post ownership are required before applying the ownership migration.
 
----
+## Local development
 
-## 📡 API Reference Overview
+### Backend
 
-### 🔐 Authentication (`/api/Auth`)
-| Method | Endpoint | Description | Access |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/Auth/register` | Register new user account | Public |
-| `POST` | `/api/Auth/login` | Authenticate with credentials & receive JWT | Public |
-| `GET` | `/api/Auth/check-paused` | Verify if an email/username is paused | Public |
-| `POST` | `/api/Auth/forgot-password` | Send password reset verification code | Public |
-| `POST` | `/api/Auth/reset-password` | Set new password with verified token | Public |
-| `POST` | `/api/Auth/change-password` | Update existing password | Authenticated |
-| `GET` | `/api/Auth/users` | List all registered user summaries | Admin Only |
-| `PUT` | `/api/Auth/users/{id}/role` | Promote/demote user role | Admin Only |
-| `PUT` | `/api/Auth/users/{id}/status` | Pause or resume user account access | Admin Only |
+1. Install the .NET 9 SDK and SQL Server.
+2. Copy `appsettings.example.json` to `appsettings.Development.json`.
+3. Set the required values listed below.
+4. Apply migrations.
+5. Start the API:
 
-### 📰 Posts (`/api/Posts`)
-| Method | Endpoint | Description | Access |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/Posts` | Retrieve paginated list of blog articles | Public |
-| `GET` | `/api/Posts/{id}` | Retrieve specific post details by ID | Public |
-| `POST` | `/api/Posts` | Publish a new blog post | Authenticated |
-| `PUT` | `/api/Posts/{id}` | Update an existing blog post | Author / Admin |
-| `DELETE`| `/api/Posts/{id}` | Delete a blog post | Author / Admin |
+```bash
+dotnet restore
+dotnet ef database update
+dotnet run --launch-profile http
+```
 
----
+Swagger is available at `http://localhost:5231/swagger` in Development.
 
-## 🚢 Deployment
+### Frontend
 
-* **Frontend:** Deployed on [Vercel](https://vercel.com/) with rewrites configured in `vercel.json` for single-page routing.
-* **Backend:** Hosted on [MonsterASP.NET](https://www.monsterasp.net/) with native IIS and .NET 9 runtime support.
-* **Database:** Managed Microsoft SQL Server 2025 instance.
+1. Install Node.js 18 or later.
+2. Copy `frontend/.env.example` to `frontend/.env.local`.
+3. Set the API and Firebase values.
+4. Install and start the Vite app:
 
----
+```bash
+cd frontend
+npm ci
+npm run dev
+```
 
-## 📄 License
-This project is open-source and available under the [MIT License](LICENSE).
+The development frontend runs at `http://localhost:5173`. Its Vite proxy targets `VITE_API_BASE_URL`.
+
+## Configuration
+
+Backend configuration can come from `appsettings.Development.json`, environment variables, or a deployment secret store.
+
+Required backend settings:
+
+- `ConnectionStrings__DefaultConnection`
+- `Jwt__Key` — at least 32 bytes
+- `Jwt__Issuer`
+- `Jwt__Audience`
+- `Firebase__ProjectId` for Firebase token validation
+- `Cors__AllowedOrigins__0` and additional allowed origins in production
+- `Smtp__Host`, `Smtp__Port`, `Smtp__EnableSsl`, `Smtp__SenderEmail`, `Smtp__Username`, and `Smtp__Password` for email delivery
+- `InitialAdmin__Email`, `InitialAdmin__Username`, and `InitialAdmin__Password` for one-time administrator provisioning
+
+Frontend settings are documented in `frontend/.env.example`:
+
+- `VITE_API_BASE_URL`
+- `VITE_ADMIN_CONTACT_EMAIL`
+- Firebase web application values beginning with `VITE_FIREBASE_`
+
+Do not commit real settings, tokens, passwords, connection strings, or Firebase credentials. The example files contain placeholders only.
+
+## API overview
+
+| Method | Endpoint | Access | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/Auth/register` | Public | Create a local API account |
+| POST | `/api/Auth/login` | Public | Issue an API JWT |
+| POST | `/api/Auth/forgot-password` | Public | Send a reset code |
+| POST | `/api/Auth/reset-password` | Public | Reset a password |
+| GET | `/api/Auth/check-paused` | Public | Check account state |
+| GET | `/api/Auth/users` | Admin | List user summaries |
+| PUT | `/api/Auth/users/{id}/role` | Admin | Change a role |
+| PUT | `/api/Auth/users/{id}/status` | Admin | Pause or resume a user |
+| GET | `/api/Posts?page=1&pageSize=20&search=api&sort=newest` | Public | Searchable, paginated posts |
+| GET | `/api/Posts/{id}` | Public | Read one post |
+| POST | `/api/Posts` | Authenticated | Create a post |
+| PUT | `/api/Posts/{id}` | Owner/Admin | Update a post |
+| DELETE | `/api/Posts/{id}` | Owner/Admin | Delete a post |
+
+## Docker
+
+Build and run the backend image from the repository root:
+
+```bash
+docker build -t pulseblog-api .
+docker run --rm -p 10000:10000 --env-file .env pulseblog-api
+```
+
+Supply configuration at runtime. Secrets are not copied into the image. The container listens on the port provided by `ASPNETCORE_URLS` (10000 by default in the Dockerfile).
+
+## Testing and verification
+
+Backend build:
+
+```bash
+dotnet build BlogApi.csproj
+```
+
+Backend tests:
+
+```bash
+dotnet test BlogApi.Tests/BlogApi.Tests.csproj
+```
+
+Frontend checks:
+
+```bash
+cd frontend
+npm run build
+npm run lint
+```
+
+The test project uses EF Core InMemory and does not connect to the production database.
+
+## Deployment notes
+
+Deploy the API with environment variables, a reachable SQL Server instance, Firebase project configuration, SMTP credentials, and an allowed production frontend origin. Apply reviewed EF Core migrations before starting the new API version. Deploy the frontend with `VITE_API_BASE_URL` set to the deployed API and Firebase web configuration set to the matching project.
+
+Swagger is enabled only in the Development environment.
+
+## Security notes
+
+- Production CORS is allow-list based.
+- Administrator privileges are database-backed and configuration-seeded.
+- Passwords are hashed with BCrypt and are never logged.
+- JWTs and Firebase tokens are not logged or persisted by the API.
+- Error responses expose a trace ID and safe details without stack traces.
+- Password reset and verification codes are held in process memory and expire after 15 minutes. A multi-instance deployment should replace this with a shared, expiring store.
+- Firebase custom claims are not trusted for administrator access; the API reads the role from its database.
+
+## Portfolio suggestion
+
+**Project title:** Full-Stack Blog Platform | ASP.NET Core REST API, React, SQL & JWT
+
+**Summary:** PulseBlog is a full-stack publishing platform built with ASP.NET Core 9, React, TypeScript, and SQL Server. It combines Firebase sign-in with database-backed roles, ownership-aware post management, searchable pagination, account controls, and a documented migration and deployment workflow.
+
+**Technologies:** ASP.NET Core 9, C#, EF Core 9, SQL Server, JWT, Firebase Authentication, React 19, TypeScript, Vite, Tailwind CSS, Docker, Swagger.
+
+**Recommended screenshots:** public feed, article detail, sign-in or registration, post editor, admin dashboard, and Swagger UI.

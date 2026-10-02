@@ -4,7 +4,7 @@ namespace BlogApi.DTOs
 {
     public class ForgotPasswordDto
     {
-        [Required]
+        [Required, EmailAddress]
         public required string Email { get; set; }
     }
 }
